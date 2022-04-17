@@ -13,10 +13,10 @@
 * Вывести содержимое переменной на экран
 
 """
-age = int(input("Введите Ваш возраст: "))
+answer = int(input("Введите Ваш возраст: "))
 
 
-def main():
+def main(age):
     if age < 7:
         print("Ты должен ходить в садик")
     elif 7 <= age <= 18:
@@ -28,4 +28,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(answer)
