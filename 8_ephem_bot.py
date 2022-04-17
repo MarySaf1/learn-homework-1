@@ -13,45 +13,66 @@
 
 """
 import logging
-
+import settings
+import ephem
+from datetime import date
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
-logging.basicConfig(format='%(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO,
-                    filename='bot.log')
+logging.basicConfig(filename='bot.log', level=logging.INFO)
 
+# Настройки прокси
+# PROXY = {'proxy_url': settings.PROXY_URL,
+         # 'urllib3_proxy_kwargs': {'username': settings.PROXY_USERNAME, 'password': settings.PROXY_PASSWORD}}
 
-PROXY = {
-    'proxy_url': 'socks5://t1.learn.python.ru:1080',
-    'urllib3_proxy_kwargs': {
-        'username': 'learn',
-        'password': 'python'
-    }
+today = str(date.today())
+
+planets = {
+    "Mercury": ephem.Mercury(today),
+    "Venus": ephem.Venus(today),
+    "Mars": ephem.Mars(today),
+    "Jupiter": ephem.Jupiter(today),
+    "Saturn": ephem.Saturn(today),
+    "Uranus": ephem.Uranus(today),
+    "Neptune": ephem.Neptune(today)
 }
 
 
 def greet_user(update, context):
-    text = 'Вызван /start'
-    print(text)
-    update.message.reply_text(text)
+    print('Вызван /start')
+    update.message.reply_text('Привет, пользователь')
 
 
-def talk_to_me(update, context):
-    user_text = update.message.text
-    print(user_text)
-    update.message.reply_text(text)
+# Функция, которая будет отвечать пользователю
+# def talk_to_me(update, context):
+#     # Получаем текст, который отправил пользователь, он хранится в update.message.text
+#     user_text = update.message.text
+#     # выводим сообщение в консоль
+#     print(user_text)
+#     # Отправляем пользователю его же сообщение
+#     update.message.reply_text(user_text)
+
+def planet(update, user_planet):
+    user_text = update.message.text.split()
+    if user_text[0] in planets:
+        sozv = planets[user_text[0]]
+        const = ephem.constellation(sozv)
+        update.message.reply_text(', '.join(map(str, const)))
 
 
 def main():
-    mybot = Updater("КЛЮЧ, КОТОРЫЙ НАМ ВЫДАЛ BotFather", request_kwargs=PROXY, use_context=True)
-
+    # передача ключа, который нам выдал BotFather
+    mybot = Updater(settings.API_KEY, use_context=True)
+    # для того, чтобы при наступлении события вызывалась наша функция
     dp = mybot.dispatcher
-    dp.add_handler(CommandHandler("start", greet_user))
-    dp.add_handler(MessageHandler(Filters.text, talk_to_me))
+    # добавляем обработку события старт
+    dp.add_handler(CommandHandler('start', greet_user))
+    # добавляем обработку сообщения от пользователя
+    # dp.add_handler(MessageHandler(Filters.text, talk_to_me))
+    dp.add_handler(MessageHandler(Filters.text, planet))
+    logging.info('Start Bot')
+    mybot.start_polling()  # регулярное обращение бота к серверу
+    mybot.idle()  # чтобы бот работал постоянно, пока не отключишь
 
-    mybot.start_polling()
-    mybot.idle()
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
